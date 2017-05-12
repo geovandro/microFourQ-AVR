@@ -1,0 +1,6 @@
+iar-ide/Debug
+iar-ide/Release
+iar-ide/settings
+src/*.tmp
+src/tests/*.tmp
+

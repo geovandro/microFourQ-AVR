@@ -31,12 +31,8 @@ extern void fpsub1271(felm_t a, felm_t b, felm_t c);
 extern void fpneg1271(felm_t a);
 
 extern void mod1271(felm_t a);
-extern void mul128(felm_t a, felm_t b, digit_t* c);
-extern void mod128(digit_t* a, felm_t c);
 extern void mod_mul128(felm_t a, felm_t b, digit_t* c);
 extern void mod_mul_dbl128(felm_t a, felm_t b, digit_t* c);
-
-extern void sqr128(felm_t a, digit_t* c);
 extern void mod_sqr128(felm_t a, digit_t* c);
 
 extern unsigned int mp_add(digit_t* a, digit_t* b, digit_t* c, unsigned int nwords);

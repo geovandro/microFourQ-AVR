@@ -277,7 +277,7 @@
                 </option>
                 <option>
                     <name>CCListCMessages</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCListAssFile</name>
@@ -285,7 +285,7 @@
                 </option>
                 <option>
                     <name>CCListAssSource</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCEnableRemarks</name>
@@ -404,7 +404,7 @@
                 </option>
                 <option>
                     <name>CCCompilerRuntimeInfo</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>newCCIncludePaths</name>
@@ -770,7 +770,7 @@
                 </option>
                 <option>
                     <name>ListSymbols</name>
-                    <state>2</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>PageLengthCheck</name>
@@ -2243,7 +2243,7 @@
                     </option>
                     <option>
                         <name>CCListCFile</name>
-                        <state>0</state>
+                        <state>1</state>
                     </option>
                     <option>
                         <name>CCListCMnemonics</name>
@@ -2251,15 +2251,15 @@
                     </option>
                     <option>
                         <name>CCListCMessages</name>
-                        <state>0</state>
+                        <state>1</state>
                     </option>
                     <option>
                         <name>CCListAssFile</name>
-                        <state>0</state>
+                        <state>1</state>
                     </option>
                     <option>
                         <name>CCListAssSource</name>
-                        <state>0</state>
+                        <state>1</state>
                     </option>
                     <option>
                         <name>CCEnableRemarks</name>
@@ -2373,7 +2373,7 @@
                     </option>
                     <option>
                         <name>CCCompilerRuntimeInfo</name>
-                        <state>0</state>
+                        <state>1</state>
                     </option>
                     <option>
                         <name>newCCIncludePaths</name>

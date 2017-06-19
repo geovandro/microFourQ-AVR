@@ -147,6 +147,7 @@ unsigned int mp_sub(const digit_t* a,const digit_t* b, digit_t* c,const unsigned
 void mp_mul(const digit_t* a, const digit_t* b, digit_t* c, const unsigned int nwords);
 
 // Multiprecision subtraction, c = a-b. Returns the borrow bit
+// nwords is the number of digit_t to be subtracted
 unsigned int subtract(const digit_t* a, const digit_t* b, digit_t* c, const unsigned int nwords);
 
 // Clear "nwords" integer-size digits from memory
@@ -245,7 +246,7 @@ void ecc_psi(point_extproj_t P);
 void ecc_phi(point_extproj_t P);
 
 // Scalar decomposition
-void decompose(uint64_t* k, uint64_t* scalars);
+void decompose(/*uint64_t**/digit_t* k, uint64_t* scalars);
 
 // Recoding sub-scalars for use in the variable-base scalar multiplication
 void recode(uint64_t* scalars, unsigned int* digits, unsigned int* sign_masks);

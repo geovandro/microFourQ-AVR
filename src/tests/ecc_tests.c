@@ -29,7 +29,7 @@ bool ecc_test()
 
     // Point doubling
     passed = 1;
- 
+
     eccset(A); 
     point_setup(A, P);
 
@@ -152,7 +152,7 @@ bool ecc_test()
     for (n=0; n<TEST_LOOPS*10; n++)
     {
         random_scalar_test(k);
-        decompose(k, scalars);  
+        decompose((digit_t *)k, scalars);  
         fp2copy1271((felm_t*)scalars, (felm_t*)scalar);
         recode(scalars, digits, sign_masks); 
 
@@ -196,11 +196,11 @@ bool ecc_test()
     res_x[0] = 0x8F7033298B9CD5A4; res_x[1] = 0x6A60DF430E52E299; res_x[2] = 0x51D6EAFEEA829A8B; res_x[3] = 0x56F40C1CE3C3CD34;
     res_y[0] = 0x5B611ABE0387F840; res_y[1] = 0x59C6A5C83477F57C; res_y[2] = 0xF33C879AB74E2490; res_y[3] = 0x12C18E67FB2A3A9D;
     if (fp2compare64((uint64_t*)A->x, res_x)!=0 || fp2compare64((uint64_t*)A->y, res_y)!=0) passed=0;
-   
+
     eccset(A); 
     clear_cofactor = true;
     scalar[0] = 0x3AD457AB55456230; scalar[1] = 0x3A8B3C2C6FD86E0C; scalar[2] = 0x7E38F7C9CFBB9166; scalar[3] = 0x0028FD6CBDA458F0;
-    
+   
     for (n=0; n<TEST_LOOPS; n++)
     {
         scalar[1] = scalar[2];
@@ -285,7 +285,9 @@ bool ecc_test()
         
         if (fp2compare64((uint64_t*)UU->x,(uint64_t*)RR->x)!=0 || fp2compare64((uint64_t*)UU->y,(uint64_t*)RR->y)!=0) { passed=0; break; }
     }
+
     if (passed==0) return false;
+
     }
 
     return OK;

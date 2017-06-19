@@ -311,48 +311,15 @@ void ecc_phi(point_extproj_t P)
 }
 
 
-static __inline void mul_truncate(uint64_t* s, uint64_t* C, uint64_t* out)       
+static __inline void mul_truncate(digit_t* s, uint64_t* C, digit_t* out)       
 { // 256-bit multiplication with truncation for the scalar decomposition
   // Outputs 64-bit value "out" = (uint64_t)((s*C) >> 256).
-    uint128_t tt1, tt2;
-    unsigned int carry1, carry2;
-    uint64_t temp;
+    digit_t res[16];
+    
+    mp_mul(s, (digit_t *)C, res, 8);
 
-    MUL128(s[0], C[0], tt2);   
-    tt2[0] = tt2[1];
-    tt2[1] = 0;
-    MUL128(s[1], C[0], tt1); 
-    ADD128(tt1, tt2, tt1);
-    MUL128(s[0], C[1], tt2); 
-    ADC128(tt1, tt2, carry1, tt1);
-    tt1[0] = tt1[1];
-    tt1[1] = (uint64_t)(carry1);
-    MUL128(s[2], C[0], tt2); 
-    ADD128(tt1, tt2, tt1);
-    MUL128(s[0], C[2], tt2); 
-    ADC128(tt1, tt2, carry1, tt1);
-    MUL128(s[1], C[1], tt2); 
-    ADC128(tt1, tt2, carry2, tt1);
-    tt1[0] = tt1[1];
-    tt1[1] = (uint64_t)carry1 + (uint64_t)carry2;
-    MUL128(s[0], C[3], tt2); 
-    ADD128(tt1, tt2, tt1);
-    MUL128(s[3], C[0], tt2); 
-    ADC128(tt1, tt2, carry1, tt1);
-    MUL128(s[1], C[2], tt2); 
-    ADC128(tt1, tt2, carry2, tt1);
-    temp = (uint64_t)carry1 + (uint64_t)carry2;
-    MUL128(s[2], C[1], tt2); 
-    ADC128(tt1, tt2, carry2, tt1);
-    tt1[0] = tt1[1];
-    tt1[1] = temp + (uint64_t)carry2;
-    MUL128(s[1], C[3], tt2); 
-    ADD128(tt1, tt2, tt1);
-    MUL128(s[3], C[1], tt2); 
-    ADD128(tt1, tt2, tt1);
-    MUL128(s[2], C[2], tt2); 
-    ADD128(tt1, tt2, tt1);
-    *out = tt1[0];
+    *out = res[8];    
+    *(out+1) = res[9];
 }
 
 
@@ -397,24 +364,68 @@ void ecc_precomp(point_extproj_t P, point_extproj_precomp_t *T)
 }
 
 
-void decompose(uint64_t* k, uint64_t* scalars)
+void decompose(digit_t* k, uint64_t* scalars)
 { // Scalar decomposition for the variable-base scalar multiplication
   // Input: scalar in the range [0, 2^256-1].
   // Output: 4 64-bit sub-scalars. 
-    uint64_t a1, a2, a3, a4, temp, mask;
+    digit_t a1[2], a2[2], a3[2], a4[2];
+    digit_t temp[4], temp2[4], mask;
 
-    mul_truncate(k, ell1, &a1);
-    mul_truncate(k, ell2, &a2);
-    mul_truncate(k, ell3, &a3);
-    mul_truncate(k, ell4, &a4);
+    mul_truncate(k, ell1, a1);
+    mul_truncate(k, ell2, a2);
+    mul_truncate(k, ell3, a3);
+    mul_truncate(k, ell4, a4);
 
-    temp = (uint64_t)k[0] - (uint64_t)a1*b11 - (uint64_t)a2*b21 - (uint64_t)a3*b31 - (uint64_t)a4*b41 + c1;
-    mask = ~(0 - (temp & 1));      // If temp is even then mask = 0xFF...FF, else mask = 0
+    mp_mul(a1, (digit_t *)&b11, temp2, 2);
+    subtract(k, temp2, temp2, 2);
+    mp_mul(a2, (digit_t *)&b21, temp, 2);
+    subtract(temp2, temp, temp2, 2);
+    mp_mul(a3, (digit_t *)&b31, temp, 2);
+    subtract(temp2, temp, temp2, 2);
+    mp_mul(a4, (digit_t *)&b41, temp, 2);
+    subtract(temp2, temp, temp2, 2);
+    add(temp2, (digit_t *)&c1, temp, 2); //temp = (uint64_t)k[0] - (uint64_t)a1*b11 - (uint64_t)a2*b21 - (uint64_t)a3*b31 - (uint64_t)a4*b41 + c1;
     
-    scalars[0] = temp + (mask & b41);
-    scalars[1] = (uint64_t)a1*b12 + (uint64_t)a2     - (uint64_t)a3*b32 - (uint64_t)a4*b42 + c2 + (mask & b42);
-    scalars[2] = (uint64_t)a3*b33 - (uint64_t)a1*b13 - (uint64_t)a2     + (uint64_t)a4*b43 + c3 - (mask & b43);
-    scalars[3] = (uint64_t)a1*b14 - (uint64_t)a2*b24 - (uint64_t)a3*b34 + (uint64_t)a4*b44 + c4 - (mask & b44);
+    mask = ~(0 - (temp[0] & 1));         // If temp is even then mask = 0xFF...FF, else mask = 0
+    
+    temp2[0] = (mask & ((digit_t) b41));
+    temp2[1] = (mask & ((digit_t *) &b41)[1]);
+    add(temp, temp2, (digit_t *)scalars, 2); //scalars[0] = temp + (mask & b41);
+
+    mp_mul(a1, (digit_t *)&b12, temp2, 2);
+    add(temp2, a2, temp2, 2);
+    mp_mul(a3, (digit_t *)&b32, temp, 2);
+    subtract(temp2, temp, temp2, 2);
+    mp_mul(a4, (digit_t *)&b42, temp, 2);
+    subtract(temp2, temp, temp2, 2);
+    add(temp2, (digit_t *)&c2, temp2, 2);
+    temp[0] = (mask & ((digit_t) b42));
+    temp[1] = (mask & ((digit_t *) &b42)[1]);
+    add(temp2, temp, (digit_t *) &scalars[1], 2); //scalars[1] = (uint64_t)a1*b12 + (uint64_t)a2 - (uint64_t)a3*b32 - (uint64_t)a4*b42 + c2 + (mask & b42);
+    
+    mp_mul(a3, (digit_t *)&b33, temp2, 2);
+    mp_mul(a1, (digit_t *)&b13, temp, 2);
+    subtract(temp2, temp, temp2, 2);
+    subtract(temp2, a2, temp2, 2);
+    mp_mul(a4, (digit_t *)&b43, temp, 2);
+    add(temp2, temp, temp2, 2);
+    add(temp2, (digit_t *)&c3, temp2, 2);
+    temp[0] = (mask & ((digit_t) b43));
+    temp[1] = (mask & ((digit_t *) &b43)[1]);   
+    subtract(temp2, temp, (digit_t *) &scalars[2], 2); //scalars[2] = (uint64_t)a3*b33 - (uint64_t)a1*b13 - (uint64_t)a2 + (uint64_t)a4*b43 + c3 - (mask & b43);
+    
+    mp_mul(a1, (digit_t *)&b14, temp2, 2);
+    mp_mul(a2, (digit_t *)&b24, temp, 2);
+    subtract(temp2, temp, temp2, 2);
+    mp_mul(a3, (digit_t *)&b34, temp, 2);
+    subtract(temp2, temp, temp2, 2);
+    mp_mul(a4, (digit_t *)&b44, temp, 2);
+    add(temp2, temp, temp2, 2);
+    add(temp2, (digit_t *)&c4, temp2, 2);
+    temp[0] = (mask & ((digit_t) b44));
+    temp[1] = (mask & ((digit_t*) &b44)[1]);      
+    subtract(temp2, temp, (digit_t *) &scalars[3], 2); //scalars[3] = (uint64_t)a1*b14 - (uint64_t)a2*b24 - (uint64_t)a3*b34 + (uint64_t)a4*b44 + c4 - (mask & b44);
+
 }
 
 
@@ -489,7 +500,7 @@ bool ecc_mul(point_t P, digit_t* k, point_t Q, bool clear_cofactor)
       int i;
 
       point_setup(P, R);                                        // Convert to representation (X,Y,1,Ta,Tb)
-      decompose((uint64_t*)k, scalars);                         // Scalar decomposition
+      decompose(k, scalars);                         // Scalar decomposition
 
       if (ecc_point_validate(R) == false) {                     // Check if point lies on the curve
               return false;
@@ -902,8 +913,8 @@ bool ecc_mul_double(digit_t* k, point_t Q, digit_t* l, point_t R)
 	ecccopy(Q2, Q4);
 	ecc_psi(Q4);
 
-	decompose((uint64_t*)k, k_scalars);                        // Scalar decomposition
-	decompose((uint64_t*)l, l_scalars);
+	decompose(k, k_scalars);                        // Scalar decomposition
+	decompose(l, l_scalars);
 	wNAF_recode(k_scalars[0], WP_DOUBLEBASE, digits_k1);       // Scalar recoding
 	wNAF_recode(k_scalars[1], WP_DOUBLEBASE, digits_k2);
 	wNAF_recode(k_scalars[2], WP_DOUBLEBASE, digits_k3);

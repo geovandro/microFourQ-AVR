@@ -20,7 +20,7 @@ extern "C" {
 int fp2compare64(uint64_t* a, uint64_t* b);
 
 // Generating a pseudo-random scalar value in [0, 2^256-1] 
-void random_scalar_test(uint64_t* a);
+void random_scalar_test(digit_t* a);
 
 // Generating a pseudo-random GF(p^2) element a+b*i, where a,b in [0, 2^127-1] 
 void fp2random1271_test(f2elm_t a);

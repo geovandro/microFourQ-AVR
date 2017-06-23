@@ -25,7 +25,7 @@ bool ecc_test()
     point_extproj_t P;
     point_extproj_precomp_t Q;
     f2elm_t t1;
-    uint64_t scalar[4], res_x[4], res_y[4];
+    uint64_t res_x[4], res_y[4], scalar[4];
 
     // Point doubling
     passed = 1;
@@ -141,18 +141,20 @@ bool ecc_test()
 
     if (fp2compare64((uint64_t*)A->x, res_x)!=0 || fp2compare64((uint64_t*)A->y, res_y)!=0) passed=0;
     if (passed==0) return false;
-     
+
+    
     // Scalar decomposition and recoding
     {        
-    uint64_t acc1, acc2, acc3, acc4, scalars[4];
+    uint64_t acc1, acc2, acc3, acc4;
+    digit_t scalars[8];
+    
     unsigned int digits[65], sign_masks[65];
-    uint64_t k[4];
     int i;
 
     for (n=0; n<TEST_LOOPS*10; n++)
     {
-        random_scalar_test(k);
-        decompose((digit_t *)k, scalars);  
+        random_scalar_test(scalars);
+        decompose(scalars, scalars);  
         fp2copy1271((felm_t*)scalars, (felm_t*)scalar);
         recode(scalars, digits, sign_masks); 
 
@@ -177,6 +179,7 @@ bool ecc_test()
     }
     if (passed==0) return false;
     }
+    
     }
 #endif
 
@@ -228,7 +231,7 @@ bool ecc_test()
           
     for (n=0; n<TEST_LOOPS; n++) 
     {
-        random_scalar_test(scalar);
+        random_scalar_test((digit_t*)scalar);
         modulo_order((digit_t*)scalar, (digit_t*)scalar);    // k = k mod (order) 
         conversion_to_odd((digit_t*)scalar, (digit_t*)k);                       
         for (j = 0; j < NWORDS64_ORDER; j++) scalar[j] = k[j];
@@ -243,7 +246,7 @@ bool ecc_test()
     
     for (n=0; n<TEST_LOOPS; n++)
     {
-        random_scalar_test(scalar); 
+        random_scalar_test((digit_t*)scalar); 
         ecc_mul_fixed((digit_t*)scalar, B);
         ecc_mul(AA, (digit_t*)scalar, C, false);
         
@@ -256,7 +259,7 @@ bool ecc_test()
     point_t PP, QQ, RR, UU, TT; 
     point_extproj_precomp_t AA;
     point_extproj_t BB;
-    uint64_t k[4], l[4], kk[4];
+    digit_t k[8], l[8], kk[8];     
 
     // Double scalar multiplication
     eccset(QQ); 
@@ -268,9 +271,9 @@ bool ecc_test()
         ecc_mul(QQ, (digit_t*)kk, QQ, false);
         random_scalar_test(k); 
         random_scalar_test(l); 
-        ecc_mul_double((digit_t*)k, QQ, (digit_t*)l, RR);
-        ecc_mul(PP, (digit_t*)k, UU, false);
-        ecc_mul(QQ, (digit_t*)l, TT, false);
+        ecc_mul_double(k, QQ, l, RR);
+        ecc_mul(PP, k, UU, false);
+        ecc_mul(QQ, l, TT, false);
     
         fp2add1271(UU->x, UU->y, AA->xy); 
         fp2sub1271(UU->y, UU->x, AA->yx); 

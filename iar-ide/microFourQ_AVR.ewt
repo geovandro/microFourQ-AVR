@@ -2152,6 +2152,9 @@
         <name>blake2b</name>
         <file>
             <name>$PROJ_DIR$\..\src\blake2b\blake.c</name>
+            <configuration>
+                <name>Debug</name>
+            </configuration>
         </file>
         <file>
             <name>$PROJ_DIR$\..\src\blake2b\blake.h</name>

@@ -246,10 +246,10 @@ void ecc_psi(point_extproj_t P);
 void ecc_phi(point_extproj_t P);
 
 // Scalar decomposition
-void decompose(/*uint64_t**/digit_t* k, uint64_t* scalars);
+void decompose(digit_t* k, digit_t* scalars);
 
 // Recoding sub-scalars for use in the variable-base scalar multiplication
-void recode(uint64_t* scalars, unsigned int* digits, unsigned int* sign_masks);
+void recode(digit_t* scalars, unsigned int* digits, unsigned int* sign_masks);
 
 // Computes the fixed window representation of scalar
 void fixed_window_recode(uint64_t* scalar, unsigned int* digits, unsigned int* sign_masks);

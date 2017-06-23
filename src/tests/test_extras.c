@@ -26,13 +26,13 @@ int fp2compare64(uint64_t* a, uint64_t* b)
 }
 
 
-void random_scalar_test(uint64_t* a)
+void random_scalar_test(digit_t* a)
 { // Generating a pseudo-random scalar value in [0, 2^256-1] 
   // NOTE: distribution is not fully uniform. TO BE USED FOR TESTING ONLY.
     unsigned char* string = (unsigned char*)&a[0];
     unsigned int i;
 
-    for (i = 0; i < (sizeof(uint64_t)*NWORDS64_ORDER); i++) {
+    for (i = 0; i < sizeof(digit_t)*(2*NWORDS64_ORDER); i++) {
         string[i] = (unsigned char)rand();             
     }
 }
@@ -43,7 +43,7 @@ void fp2random1271_test(f2elm_t a)
   // NOTE: distribution is not fully uniform. TO BE USED FOR TESTING ONLY.
     digit_t mask_7fff = (digit_t)-1 >> 1;
 
-    random_scalar_test((uint64_t*)&a[0]);
+    random_scalar_test((digit_t*)&a[0]);
     a[0][NWORDS_FIELD-1] &= mask_7fff;
     a[1][NWORDS_FIELD-1] &= mask_7fff;
 }

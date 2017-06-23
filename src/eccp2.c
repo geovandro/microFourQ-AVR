@@ -364,7 +364,7 @@ void ecc_precomp(point_extproj_t P, point_extproj_precomp_t *T)
 }
 
 
-void decompose(digit_t* k, uint64_t* scalars)
+void decompose(digit_t* k, digit_t* scalars)
 { // Scalar decomposition for the variable-base scalar multiplication
   // Input: scalar in the range [0, 2^256-1].
   // Output: 4 64-bit sub-scalars. 
@@ -390,7 +390,7 @@ void decompose(digit_t* k, uint64_t* scalars)
     
     temp2[0] = (mask & ((digit_t) b41));
     temp2[1] = (mask & ((digit_t *) &b41)[1]);
-    add(temp, temp2, (digit_t *)scalars, 2); //scalars[0] = temp + (mask & b41);
+    add(temp, temp2, scalars, 2); //scalars[0] = temp + (mask & b41);
 
     mp_mul(a1, (digit_t *)&b12, temp2, 2);
     add(temp2, a2, temp2, 2);
@@ -401,7 +401,7 @@ void decompose(digit_t* k, uint64_t* scalars)
     add(temp2, (digit_t *)&c2, temp2, 2);
     temp[0] = (mask & ((digit_t) b42));
     temp[1] = (mask & ((digit_t *) &b42)[1]);
-    add(temp2, temp, (digit_t *) &scalars[1], 2); //scalars[1] = (uint64_t)a1*b12 + (uint64_t)a2 - (uint64_t)a3*b32 - (uint64_t)a4*b42 + c2 + (mask & b42);
+    add(temp2, temp, &scalars[2], 2); //scalars[1] = (uint64_t)a1*b12 + (uint64_t)a2 - (uint64_t)a3*b32 - (uint64_t)a4*b42 + c2 + (mask & b42);
     
     mp_mul(a3, (digit_t *)&b33, temp2, 2);
     mp_mul(a1, (digit_t *)&b13, temp, 2);
@@ -412,7 +412,7 @@ void decompose(digit_t* k, uint64_t* scalars)
     add(temp2, (digit_t *)&c3, temp2, 2);
     temp[0] = (mask & ((digit_t) b43));
     temp[1] = (mask & ((digit_t *) &b43)[1]);   
-    subtract(temp2, temp, (digit_t *) &scalars[2], 2); //scalars[2] = (uint64_t)a3*b33 - (uint64_t)a1*b13 - (uint64_t)a2 + (uint64_t)a4*b43 + c3 - (mask & b43);
+    subtract(temp2, temp, &scalars[4], 2); //scalars[2] = (uint64_t)a3*b33 - (uint64_t)a1*b13 - (uint64_t)a2 + (uint64_t)a4*b43 + c3 - (mask & b43);
     
     mp_mul(a1, (digit_t *)&b14, temp2, 2);
     mp_mul(a2, (digit_t *)&b24, temp, 2);
@@ -424,16 +424,16 @@ void decompose(digit_t* k, uint64_t* scalars)
     add(temp2, (digit_t *)&c4, temp2, 2);
     temp[0] = (mask & ((digit_t) b44));
     temp[1] = (mask & ((digit_t*) &b44)[1]);      
-    subtract(temp2, temp, (digit_t *) &scalars[3], 2); //scalars[3] = (uint64_t)a1*b14 - (uint64_t)a2*b24 - (uint64_t)a3*b34 + (uint64_t)a4*b44 + c4 - (mask & b44);
+    subtract(temp2, temp, &scalars[6], 2); //scalars[3] = (uint64_t)a1*b14 - (uint64_t)a2*b24 - (uint64_t)a3*b34 + (uint64_t)a4*b44 + c4 - (mask & b44);
 
 }
 
 
-void recode(uint64_t* scalars, unsigned int* digits, unsigned int* sign_masks)
+void recode(digit_t* scalars, unsigned int* digits, unsigned int* sign_masks)
 { // Recoding sub-scalars for use in the variable-base scalar multiplication. See Algorithm 1 in "Efficient and Secure Methods for GLV-Based Scalar 
   // Multiplication and their Implementation on GLV-GLS Curves (Extended Version)", A. Faz-Hernandez, P. Longa, and A.H. Sanchez, in Journal
   // of Cryptographic Engineering, Vol. 5(1), 2015.
-  // Input: 4 64-bit sub-scalars passed through "scalars", which are obtained after calling decompose().
+  //Input: 8 32-bit sub-scalars passed through "scalars", which are obtained after calling decompose().
   // Outputs: "digits" array with 65 nonzero entries. Each entry is in the range [0, 7], corresponding to one entry in the precomputed table.
   //          "sign_masks" array with 65 entries storing the signs for their corresponding digits in "digits". 
   //          Notation: if the corresponding digit > 0 then sign_mask = 0xFF...FF, else if digit < 0 then sign_mask = 0.
@@ -443,25 +443,35 @@ void recode(uint64_t* scalars, unsigned int* digits, unsigned int* sign_masks)
     for (i = 0; i < 64; i++)
     {
         scalars[0] >>= 1;
+        scalars[0] = scalars[0] | ((scalars[1] & 1) << 31);
+        scalars[1] >>= 1;
         bit0 = (unsigned int)scalars[0] & 1;
         sign_masks[i] = 0 - bit0;
 
-        bit = (unsigned int)scalars[1] & 1;
-        carry = (bit0 | bit) ^ bit0; 
-        scalars[1] = (scalars[1] >> 1) + (uint64_t)carry; 
-        digits[i] = bit;
-
         bit = (unsigned int)scalars[2] & 1;
         carry = (bit0 | bit) ^ bit0; 
-        scalars[2] = (scalars[2] >> 1) + (uint64_t)carry; 
+        scalars[2] = (scalars[2] >> 1) + (digit_t)carry;
+        scalars[2] = scalars[2] | ((scalars[3] & 1) << 31);
+        scalars[3] >>= 1;
+        digits[i] = bit;
+
+        bit = (unsigned int)scalars[4] & 1;
+        carry = (bit0 | bit) ^ bit0; 
+        scalars[4] = (scalars[4] >> 1) + (digit_t)carry; 
+        scalars[4] = scalars[4] | ((scalars[5] & 1) << 31);
+        scalars[5] >>= 1;        
         digits[i] += (bit << 1);
 
-        bit = (unsigned int)scalars[3] & 1;
+        bit = (unsigned int)scalars[6] & 1;
         carry = (bit0 | bit) ^ bit0; 
-        scalars[3] = (scalars[3] >> 1) + (uint64_t)carry; 
+        scalars[6] = (scalars[6] >> 1) + (digit_t)carry; 
+        scalars[6] = scalars[6] | ((scalars[7] & 1) << 31);
+        scalars[7] >>= 1;        
         digits[i] += (bit << 2);
+        
     }
-    digits[64] = (unsigned int)(scalars[1] + (scalars[2] << 1) + (scalars[3] << 2));
+    digits[64] = (unsigned int)(scalars[2] + (scalars[4] << 1) + (scalars[6] << 2));    
+    
 }
 
 
@@ -495,7 +505,7 @@ bool ecc_mul(point_t P, digit_t* k, point_t Q, bool clear_cofactor)
   // This function performs point validation and (if selected) cofactor clearing.
       point_extproj_t R;
       point_extproj_precomp_t S, Table[8];
-      uint64_t scalars[NWORDS64_ORDER];
+      digit_t scalars[2*NWORDS64_ORDER];
       unsigned int digits[65], sign_masks[65];
       int i;
 
@@ -913,8 +923,8 @@ bool ecc_mul_double(digit_t* k, point_t Q, digit_t* l, point_t R)
 	ecccopy(Q2, Q4);
 	ecc_psi(Q4);
 
-	decompose(k, k_scalars);                        // Scalar decomposition
-	decompose(l, l_scalars);
+	decompose(k, (digit_t*)k_scalars);                        // Scalar decomposition
+	decompose(l, (digit_t*)l_scalars);
 	wNAF_recode(k_scalars[0], WP_DOUBLEBASE, digits_k1);       // Scalar recoding
 	wNAF_recode(k_scalars[1], WP_DOUBLEBASE, digits_k2);
 	wNAF_recode(k_scalars[2], WP_DOUBLEBASE, digits_k3);

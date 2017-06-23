@@ -1,6 +1,7 @@
 iar-ide/Debug
 iar-ide/Release
 iar-ide/settings
+iar-ide/*.log
 src/*.tmp
 src/tests/*.tmp
 

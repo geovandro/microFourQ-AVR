@@ -1,8 +1,9 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////
-// Multi-Precision Modular Squaring: c = a^2 (mod 2^127-1); Code from e-print paper: 2014/592   //
-//                                                                                              //   
-// Authors: Zhe Liu, Hwajeong Seo                                                               //
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// Multi-Precision Modular Squaring: c = a^2 (mod 2^127-1);                                         //
+// Adopts the Sliding Block Doubling (SBD) method from                                              //
+// 'Multi-precision Squaring for Public-Key Cryptography on Embedded Microprocessors', INDOCRYPT'13 //   
+// Authors: Zhe Liu, Hwajeong Seo                                                                   //
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 ﻿
 NAME mod_sqr128            ; module name
 PUBLIC mod_sqr128          ; make the main label vissible outside this module

@@ -1,12 +1,12 @@
-//////////////////////////////////////////////////////////////////////////////
-// Field Addition: r = a + b mod p; Incomplete arithmetic [0, 2^128-1]      //
-//                                                                          //
-// Authors: Zhe Liu, Hwajeong Seo                                           //
-//////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+// Field subtraction: r = a - b mod p, p = 2^127-1         //
+//                                                         //
+// Authors: Zhe Liu, Hwajeong Seo                          //
+/////////////////////////////////////////////////////////////
 
 NAME fpsub1271            ; module name
 PUBLIC fpsub1271          ; make the main label vissible outside this module
-RSEG CODE                   ; place program in 'CODE' segment
+RSEG CODE                 ; place program in 'CODE' segment
 
 ;  R4-R15 and R24-R29
 ; operand b: r21:r20
